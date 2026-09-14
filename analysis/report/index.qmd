@@ -26,9 +26,9 @@ notes into a searchable knowledge base.*
 
 # Introduction
 
-I did not really know how to maintain a consistent
-research log until I started losing track of what I
-had accomplished across ten concurrent projects. The
+Maintaining a consistent research log is harder than
+it sounds, and I started losing track of what I had
+accomplished across ten concurrent projects. The
 problem was not motivation; it was friction. Opening a
 text editor, remembering the right file, formatting
 the entry, and committing the changes felt like too
