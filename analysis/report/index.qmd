@@ -99,6 +99,8 @@ I am documenting my learning process here. If you spot
 errors or have better approaches, please let me know.
 
 
+![A small open notebook with a ribbon and pencil beside tea in morning light.](media/images/ambiance1.jpg){.img-fluid height=3.5in}
+
 # Prerequisites and Setup
 
 This workflow assumes a macOS environment with the
@@ -802,3 +804,4 @@ Recommended reading order:
 
 1. Post 41: [Refactoring a Personal Toolbox: Scripts versus Shell Functions](../sh-scripts-vs-functions/)
 2. **Post 43: A Mac Workflow for Tracking Daily Research Progress** (this post)
+3. [Two Git Guardrails: Auto-Push on Commit and a Check on the Way Out](../sh-autopush-and-leave-check/)
