@@ -55,10 +55,12 @@ past its original design in small increments.
 More formally, this documents the file-system layer of
 the Workflow Construct described in
 [A Workflow Construct for the Modern Data Scientist](../wf-construct-overview-anchor/). The convention that
-all research projects live under `~/prj/NN-name/` and are synced
-continuously by Dropbox is the substrate `tn` depends on. Its
-notes directory, `~/prj/research_update`, is itself a Dropbox-synced
-path, even though (as covered below) it is not a Git repository.
+all research projects live in a local `~/prj`, organized by area
+into numbered project folders, is the substrate `tn` depends on. Its
+notes directory, `~/prj/admin/notes` (formerly
+`~/prj/research_update`, and synced by Dropbox until the lab left
+Dropbox in September 2026), is not a Git repository, as covered
+below.
 
 ## Motivations
 
@@ -149,7 +151,7 @@ dispatched from a `case` statement over its command-line
 flags.
 
 Each project gets its own file,
-`~/prj/research_update/<project>_notes.txt`, and each
+`~/prj/admin/notes/<project>_notes.txt`, and each
 entry in that file follows a fixed, delimited format:
 
 ```
@@ -175,21 +177,20 @@ summary is never the only surviving copy of a note.
 The central notes directory is fixed inside the script:
 
 ```sh
-notes_dir="$HOME/prj/research_update"
+notes_dir="$HOME/prj/admin/notes"
 ```
 
-Because `~/prj` is a symlink into Dropbox, this
-directory is continuously synced off-machine, the same
-as any other project directory in the Workflow
-Construct. It is, however, **not a Git repository** on
-this machine, so there is no commit history, no diff
-view, and no way to recover a specific past state of a
-note file beyond whatever Dropbox's own version history
-retains. The original design for this workflow assumed
+`~/prj` is a plain local directory. This one is copied
+off the machine only by the nightly backups: an
+encrypted Borg archive to a home server and rclone
+copies to cloud drives. It is **not a Git repository**,
+so there is no commit history, no diff view, and the
+only way to recover a past state of a note file is from
+a nightly backup. The original design for this workflow assumed
 Git would provide an audit trail; the script that
 actually got built does not touch Git at all.
 
-Running `ls ~/prj/research_update` shows one text file
+Running `ls ~/prj/admin/notes` shows one text file
 per project the tool has been used on:
 
 ```
@@ -413,7 +414,7 @@ Nothing in `tn` writes to `daily_log.md`. It is a
 holdover from the earlier tagged-single-log design that
 never got wired up to the per-project notes files this
 script actually maintains. On this machine, no such file
-exists in `~/prj/research_update`, so `-q` currently
+exists in `~/prj/admin/notes`, so `-q` currently
 always falls into the "No daily_log.md found" branch.
 `tn -l` followed by `tn -r <project>` is the working
 substitute.
@@ -423,16 +424,15 @@ substitute.
 
 1. **`--delete` edits the notes file in place; `--edit`
    deliberately does not.** `delete_entry` runs
-   `sed -i ''` directly against a file inside
-   `~/prj/research_update`, which is a Dropbox-synced
-   path. `edit_entry`, in the same script, explicitly
-   avoids in-place editing for this reason, writing a
-   fresh tempfile and `mv`-ing it over the original
-   instead. In-place editors that write-then-rename can
-   race with a sync in progress on a cloud-mounted
-   directory; `delete_entry` does not have that
-   protection. Deleting entries during an active Dropbox
-   sync is the highest-risk operation in this script.
+   `sed -i ''` directly against a file inside the notes
+   directory. `edit_entry`, in the same script, explicitly
+   avoids in-place editing, writing a fresh tempfile and
+   `mv`-ing it over the original instead. In-place editors
+   that write-then-rename can race with a sync in progress
+   on a cloud-mounted directory. The notes directory was
+   Dropbox-synced when this was written; it is local now,
+   so the risk applies only if it is ever moved back under
+   a sync service.
 
 2. **`-q` / `--quick` does not read from where notes are
    written.** It searches `daily_log.md`, a file nothing
@@ -441,9 +441,9 @@ substitute.
    `-r` with an explicit project name instead.
 
 3. **No version control on the notes files themselves.**
-   `~/prj/research_update` is not a Git repository. Notes
-   are protected only by Dropbox's file-sync history, not
-   by commit-level diffs or an audit trail.
+   The notes directory is not a Git repository. Notes
+   are protected only by the nightly backups, not by
+   commit-level diffs or an audit trail.
 
 4. **Every note-taking or edit-with-resummarize call
    requires network access and a valid `GEMINI_API_KEY`.**
@@ -534,7 +534,7 @@ checklist to work through here, just the analysis.
    captured by `tn` are not part of the project's Git
    history (see the limitations above); pushing the code
    commit does nothing for the day's `tn` entry, since
-   `~/prj/research_update` lives outside the project
+   `~/prj/admin/notes` lives outside the project
    repository entirely.
 
 Point 6 is worth restating on its own: the `tn` entry and
@@ -621,16 +621,16 @@ that never touched them.
   until the script exits) but they are also not saved
   automatically; there is no "save raw notes even if
   summarization fails" path.
-- There is no automated backup beyond Dropbox's file
-  sync. Unlike a Git-backed log, there is no way to
-  inspect what a note file looked like before a given
-  delete or edit.
+- The only history is the nightly backups. Unlike a
+  Git-backed log, there is no way to inspect what a note
+  file looked like before a given delete or edit made the
+  same day.
 - `-q` / `--quick` is effectively dead code on this
   machine: the file it reads does not exist, and nothing
   in the script would create it.
-- `delete_entry`'s in-place `sed -i` is a real risk on a
-  Dropbox-synced notes directory, more so than any other
-  operation in the script.
+- `delete_entry`'s in-place `sed -i` was a real risk while
+  the notes directory was Dropbox-synced; on a local
+  directory it is ordinary in-place editing.
 - The workflow does not handle attachments, images, or
   structured data. It is text-only by design.
 
@@ -650,7 +650,7 @@ that never touched them.
    project>` against the per-project file that already
    holds the data.
 
-3. **Initialize `~/prj/research_update` as a Git
+3. **Initialize `~/prj/admin/notes` as a Git
    repository**, with an automatic commit after each
    append, edit, or delete, to restore the audit-trail
    guarantee the original design assumed Git would
